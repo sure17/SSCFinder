@@ -1,0 +1,33 @@
+rules:
+- id: js-code-execution
+  languages:
+    - javascript
+  message: This code is executing OS commands or evaluating code
+  metadata:
+    description: Identify when an OS command is executed or code is evaluated in JavaScript files.
+  patterns:
+    - pattern-either:
+      # eval
+      - pattern: eval($EVAL_ARG)
+      
+      # child_process module
+      - pattern: require("child_process").exec($CMD_ARG)
+      - pattern: require("child_process").execSync($CMD_ARG)
+      - pattern: require("child_process").spawn($CMD_ARG)
+      - pattern: require("child_process").spawnSync($CMD_ARG)
+      - pattern: require("child_process").execFile($CMD_ARG)
+      - pattern: require("child_process").execFileSync($CMD_ARG)
+
+      # Dynamic import
+      - pattern: import($DYNAMIC_IMPORT)
+
+      # Function constructor
+      - pattern: new Function($FUNCTION_ARG)
+
+      # Using global for eval
+      - pattern-either:
+        - pattern: global['eval']($EVAL_ARG)
+        - pattern: global['\x65\x76\x61\x6c']($EVAL_ARG) # that's "eval" in hexadecimal
+
+  severity: WARNING
+

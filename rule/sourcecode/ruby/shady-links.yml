@@ -1,0 +1,13 @@
+rules:
+  - id: shady-links-ruby
+    message: This gem contains an URL to a domain with a suspicious extension
+    metadata:
+      description: Identify when a gem contains an URL to a domain with a suspicious extension
+    patterns:
+      - pattern-either:
+          - pattern-regex: http[s]?:\/\/bit\.ly[^\s]*\s(?![^\n]*#)
+          - pattern-regex: http[s]?:\/\/.*\.(link|xyz|tk|ml|ga|cf|gq|pw|top|club|mw|bd|ke|am|sbs|date|quest|cd|bid|ws|icu|cam|uno|email|stream)(\/|$)(?![^\n]*#)
+    languages:
+      - ruby
+    severity: WARNING
+

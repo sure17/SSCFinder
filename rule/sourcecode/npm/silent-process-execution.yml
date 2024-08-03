@@ -1,0 +1,22 @@
+rules:
+  - id: js-silent-process-execution
+    message: This package is silently executing an external binary, redirecting stdout, stderr, and stdin to 'ignore' in JavaScript.
+    metadata:
+      description: Identify when JavaScript code silently executes an executable.
+    patterns:
+      - pattern-either:
+          # Using exec from child_process
+          - pattern: 'require("child_process").exec(..., { ..., stdio: "ignore", ... })'
+          # Using spawn from child_process
+          - pattern: 'require("child_process").spawn(..., { ..., stdio: "ignore", ... })'
+          # Using execFile from child_process
+          - pattern: 'require("child_process").execFile(..., { ..., stdio: "ignore", ... })'
+          # Using execSync from child_process
+          - pattern: 'require("child_process").execSync(..., { ..., stdio: "ignore", ... })'
+          # Using spawnSync from child_process
+          - pattern: 'require("child_process").spawnSync(..., { ..., stdio: "ignore", ... })'
+          # Using execFileSync from child_process
+          - pattern: 'require("child_process").execFileSync(..., { ..., stdio: "ignore", ... })'
+    languages:
+      - javascript
+    severity: WARNING

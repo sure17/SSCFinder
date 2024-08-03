@@ -1,0 +1,19 @@
+rules:
+  - id: obfuscation-ruby
+    message: This gem is using a common obfuscation method often used by malware
+    metadata:
+      description: Identify when a gem uses a common obfuscation method often used by malware
+    patterns:
+      - pattern-either:
+          # evaluates to "eval"
+          - pattern: 'eval("\145\166\141\154")'
+          # evaluates to "eval"
+          - pattern: 'eval("\x65\x76\x61\x6c")'
+          # example using gsub to transform "_v" into "eval"
+          - pattern: '"_v".gsub("_", "e")'
+          # obfuscation through concatenated strings
+          - pattern: 'e + v + a + l'
+    languages:
+      - ruby
+    severity: WARNING
+

@@ -1,0 +1,17 @@
+rules:
+- id: js-steganography
+  message: This package is dynamically executing hidden data from an image in JavaScript.
+  metadata:
+    description: Identify when JavaScript code retrieves hidden data from an image and executes it.
+  languages:
+    - javascript
+  mode: taint
+  severity: WARNING
+
+  pattern-sources:
+    - pattern: $DECODE_FUNC(...)
+      where: "$DECODE_FUNC in ['steg.decodeFromImage', 'ImageSteganography.decode', 'stegJS.reveal']"
+  
+  pattern-sinks:
+    - pattern: eval($HIDDEN_DATA)
+

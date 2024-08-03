@@ -1,0 +1,16 @@
+rules:
+- id: cmd-overwrite
+  languages:
+    - json
+  message: "This package has a 'postinstall' script in package.json."
+  metadata:
+    description: "Detects a 'postinstall' script, which runs automatically after package installation."
+  severity: WARNING
+  patterns:
+    - pattern: |
+        {
+          "scripts": {
+            "postinstall": "..."
+          }
+        }
+

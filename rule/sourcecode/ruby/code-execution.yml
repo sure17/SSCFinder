@@ -1,0 +1,38 @@
+rules:
+  - id: code-execution-ruby
+    languages:
+      - ruby
+    message: This package is executing OS commands in the gem-related files.
+    metadata:
+      description: Identify when an OS command is executed in Ruby gem-related files.
+    patterns:
+      # Kernel#eval
+      - pattern-either:
+          - pattern: eval($ARG1)
+          - pattern: Kernel.eval($ARG1)
+      # Kernel#system
+      - pattern: system($ARG1, ...)
+      # Backticks
+      # IO.popen
+      - pattern: IO.popen($ARG1, ...)
+      # Open3
+      - patterns:
+          - pattern: Open3.capture2($ARG1, ...)
+          - pattern: Open3.capture2e($ARG1, ...)
+          - pattern: Open3.capture3($ARG1, ...)
+      # Miscellaneous 
+      - pattern: exec($ARG1, ...)
+      - pattern: spawn($ARG1, ...)
+
+      # Exclusions
+      - metavariable-pattern:
+          metavariable: $ARG1
+          patterns:
+            - pattern-not-regex: (gem|bundle|rake|rails)
+    paths:
+      include:
+        - "*/.gemspec"
+        - "*/Rakefile"
+        - "*/code-execution.rb"
+    severity: WARNING
+

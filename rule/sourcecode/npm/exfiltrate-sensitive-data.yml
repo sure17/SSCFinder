@@ -1,0 +1,31 @@
+rules:
+  - id: js-exfiltrate-sensitive-data
+    mode: taint
+    message: This package is exfiltrating sensitive data to a remote server in JavaScript.
+    metadata:
+      description: Identify when JavaScript code reads and exfiltrates sensitive data from the local system.
+    pattern-sources:
+      - pattern: process.env
+      - pattern: fs.readFileSync($FILE, ...)
+      - pattern: fs.readFile($FILE, ...)
+      - pattern: process.env.AWS_ACCESS_KEY_ID
+      - pattern: process.env.AWS_SECRET_ACCESS_KEY
+      - pattern: process.env.AWS_SESSION_TOKEN
+      - pattern: process.env.PRIVATE_KEY
+      - pattern: process.env.API_TOKEN
+      - pattern: process.env.PASSWORD
+      - pattern: |
+          $FILE=/.aws\/credentials|\.docker\/config\.json/
+    pattern-sinks:
+      - pattern: require('axios').$METHOD($DATA)
+      - pattern: require('request').$METHOD($DATA)
+      - pattern: require('node-fetch').$METHOD($DATA)
+      - pattern: require('http').$METHOD($DATA)
+      - pattern: require('https').$METHOD($DATA)
+      - pattern: require('needle').$METHOD($DATA)
+      - pattern: const $S = require('net').createConnection(...); ...
+      - pattern: $S.write($DATA)
+    languages:
+      - javascript
+    severity: WARNING
+

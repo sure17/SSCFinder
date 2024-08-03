@@ -1,0 +1,40 @@
+rules:
+  - id: download-executable-ruby
+    languages:
+      - ruby
+    message: This gem is downloading and making executable a remote binary.
+    metadata:
+      description: Identify when a gem downloads and makes executable a remote binary.
+    mode: taint
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: |
+                  $FILE = File.open($LOC, ...)
+                  ...
+                  $FILE.write($REQUEST)
+                  ...
+                  $CHANGE_PERMISSIONS
+              - pattern: |
+                  File.open($LOC, ...) do |$FILE|
+                    ...
+                    $FILE.write($REQUEST)
+                  end
+                  ...
+                  $CHANGE_PERMISSIONS
+          - metavariable-pattern:
+              metavariable: $CHANGE_PERMISSIONS
+              pattern-either:
+                - pattern: File.chmod(0777, $LOC)
+                - pattern: File.chmod(0777, "$LOC")
+                - pattern: system("chmod 777 #{$LOC}")
+                - pattern: chmod 777 #{$LOC}
+    pattern-sources:
+      - pattern: Net::HTTP.get_response(...)
+      - pattern: Net::HTTP.get(...)
+      - pattern: Net::HTTP.post(...)
+      - pattern: URI.open(...)
+      - pattern: open("http://...", ...)
+      - pattern: open("https://...", ...)
+    severity: WARNING
+

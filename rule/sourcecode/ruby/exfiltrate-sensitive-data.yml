@@ -1,0 +1,37 @@
+rules:
+  - id: exfiltrate-sensitive-data-ruby
+    mode: taint
+    message: This gem is exfiltrating sensitive data to a remote server
+    metadata:
+      description: Identify when a gem reads and exfiltrates sensitive data from the local system
+    pattern-sources:
+      - pattern: ENV["..."]
+      - pattern: Socket.gethostname
+      - pattern: Etc.getlogin
+      - patterns:
+          - pattern-either:
+              - pattern: File.open($FILE, ...)
+              - pattern: File.read($FILE, ...)
+          - metavariable-regex:
+              metavariable: $FILE
+              regex: ([\"\'].*(.aws/credentials|.docker/config.json)[\"\'])
+      - patterns:
+          - pattern-either:
+              - pattern: ENV[$ENVVAR]
+              - pattern: ENV.fetch($ENVVAR)
+          - metavariable-regex:
+              metavariable: $ENVVAR
+              regex: ([\"\'](AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|AWS_SESSION_TOKEN)[\"\'])
+    pattern-sinks:
+      - pattern-either:
+          - pattern-inside: Net::HTTP.get(...)
+          - pattern-inside: Net::HTTP.post(...)
+          - pattern-inside: open("http://...", ...)
+          - pattern-inside: open("https://...", ...)
+          - pattern-inside: TCPSocket.open(...)
+          - pattern-inside: UDPSocket.open(...)
+          - pattern-inside: $SOCKET.send(...)
+    languages:
+      - ruby
+    severity: WARNING
+

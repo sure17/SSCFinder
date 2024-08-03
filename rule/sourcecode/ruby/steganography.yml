@@ -1,0 +1,20 @@
+rules:
+  - id: steganography
+    languages:
+      - ruby
+    message: This package is dynamically executing hidden data from an image
+    metadata:
+      description: Identify when a package retrieves hidden data from an image and executes it
+    mode: taint
+    pattern-sinks:
+      - pattern-either:
+          - pattern-inside: eval(...)
+          - pattern-inside: Kernel.eval(...)
+          # You can also add any Ruby specific methods that execute code dynamically
+    pattern-sources:
+      - pattern-either:
+          # Here, add the Ruby methods that are used to decode hidden data from an image.
+          - pattern: $SOME_RUBY_LIBRARY.decode_hidden_data_from_image(...)
+          # If you have specific libraries in Ruby for steganography, replace the placeholders with those methods.
+    severity: WARNING
+

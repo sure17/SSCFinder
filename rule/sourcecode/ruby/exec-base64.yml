@@ -1,0 +1,26 @@
+rules:
+  - id: exec-base64-ruby
+    languages:
+      - ruby
+    message: |
+      This gem contains a call to the `eval` function with a `base64` encoded string as argument.
+      This is a common method used to hide a malicious payload as static analysis will not decode the string.
+    metadata:
+      description: Identify when a gem dynamically executes base64-encoded code
+    mode: taint
+    pattern-sinks:
+      - pattern-either:
+          - pattern-inside: eval(...)
+          - pattern-inside: system(...)
+          - pattern-inside: Kernel.system(...)
+          - pattern-inside: IO.popen(...)
+          - pattern-inside: exec(...)
+          - pattern-inside: Kernel.exec(...)
+    pattern-sources:
+      - pattern-either:
+          - pattern: Base64.decode64("...")
+          - pattern: Base64.decode64(...)
+          - pattern: Base64.strict_decode64("...")
+          - pattern: Base64.strict_decode64(...)
+    severity: WARNING
+

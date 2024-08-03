@@ -1,0 +1,27 @@
+rules:
+- id: js-exec-base64
+  languages:
+    - javascript
+  message: |
+    This code contains a call to the `eval` function or `Function` constructor with a base64-decoded string as an argument.
+    This is a common method used to hide malicious payloads as static analysis might not decode the string.
+  metadata:
+    description: Identify when code dynamically executes base64-encoded content in JavaScript.
+  mode: taint
+  pattern-sinks:
+    - pattern-either:
+        - pattern: eval($DECODED_CONTENT)
+        - pattern: new Function($DECODED_CONTENT)
+        - pattern: |
+            const { $CHILD_FUNC } = require('child_process');
+            $CHILD_FUNC($DECODED_CONTENT)
+        - pattern: require('child_process').$CHILD_FUNC($DECODED_CONTENT)
+      where: "$CHILD_FUNC in ['exec', 'execSync', 'spawn', 'spawnSync', 'execFile', 'execFileSync']"
+
+  pattern-sources:
+    - pattern-either:
+        - pattern: $DECODED_CONTENT = atob($ENCODED_CONTENT)
+        - pattern: $DECODED_CONTENT = Buffer.from($ENCODED_CONTENT, 'base64').toString('utf8')
+
+  severity: WARNING
+

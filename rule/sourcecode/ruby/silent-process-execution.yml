@@ -1,0 +1,15 @@
+rules:
+  - id: silent-process-execution-ruby
+    message: This gem is silently executing an external binary, redirecting stdout, stderr, and stdin to /dev/null
+    metadata:
+      description: Identify when a gem silently executes an executable
+    pattern-either:
+      - pattern: system(..., [:out, :err] => "/dev/null")
+      - pattern: IO.popen(..., [:out, :err] => "/dev/null")
+      # Instead of looking for shell-like redirection, look for backticks or %x with Ruby-specific redirection
+      - pattern: "`... > /dev/null 2>&1`"
+      - pattern: "%x[... > /dev/null 2>&1]"
+    languages:
+      - ruby
+    severity: WARNING
+

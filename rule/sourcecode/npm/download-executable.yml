@@ -1,0 +1,54 @@
+rules:
+- id: js-download-executable
+  languages:
+    - javascript
+  message: This code is downloading and making executable a remote binary in JavaScript.
+  metadata:
+    description: Identify when code downloads and makes executable a remote binary in JavaScript.
+  mode: taint
+  pattern-sinks:
+    - pattern: |
+        const fs = require('fs');
+        ...
+        $WRITE_STREAM = fs.createWriteStream($LOCATION);
+        ...
+        $REQUEST.pipe($WRITE_STREAM);
+        ...
+        $CHANGE_PERMISSIONS
+        ...
+        require('child_process').exec(`chmod +x ${$LOCATION}`)
+    - pattern: |
+        $WRITE_STREAM = require('fs').createWriteStream($LOCATION);
+        ...
+        $REQUEST.pipe($WRITE_STREAM);
+        ...
+        $CHANGE_PERMISSIONS
+        ...
+        require('child_process').execSync(`chmod +x ${$LOCATION}`)
+    - pattern: |
+        const { exec } = require('child_process'); 
+        ...
+        $WRITE_STREAM = require('fs').createWriteStream($LOCATION);
+        ...
+        $REQUEST.pipe($WRITE_STREAM);
+        ...
+        $CHANGE_PERMISSIONS
+        ...
+        exec(`chmod +x ${$LOCATION}`)
+    - pattern: |
+        const { execSync } = require('child_process'); 
+        ...
+        $WRITE_STREAM = require('fs').createWriteStream($LOCATION);
+        ...
+        $REQUEST.pipe($WRITE_STREAM);
+        ...
+        $CHANGE_PERMISSIONS
+        ...
+        execSync(`chmod +x ${$LOCATION}`)
+
+  pattern-sources:
+    - pattern: require($LIBRARY).$FUNCTION(...)
+      where: "$LIBRARY in ['request', 'axios', 'http', 'https']"
+
+  severity: WARNING
+

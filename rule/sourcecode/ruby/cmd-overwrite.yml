@@ -1,0 +1,20 @@
+rules:
+  - id: cmd-overwrite-ruby
+    languages:
+      - ruby
+    message: This gem is overwriting certain commands or hooks.
+    metadata:
+      description: Identify when specific hooks or commands are overwritten in .gemspec files, indicating a piece of code might be automatically running when the gem is built or installed.
+    patterns:
+      - pattern-either:
+          - pattern: |
+              Gem::Specification.new $GEMNAME do |spec|
+                ...
+                spec.$HOOK = $CODE
+                ...
+              end
+      - metavariable-regex:
+          metavariable: $HOOK
+          regex: post_install_message|extensions|require_paths
+    severity: WARNING
+

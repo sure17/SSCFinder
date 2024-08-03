@@ -1,0 +1,26 @@
+rules:
+  - id: js-obfuscation
+    message: This package is using a common obfuscation method often used by malware in JavaScript.
+    metadata:
+      description: Identify when JavaScript code uses a common obfuscation method often used by malware.
+    patterns:
+      - pattern-either:
+          # Evaluates to "eval"
+          - pattern: 'eval("\145\166\141\154")'
+          - pattern: 'eval("\x65\x76\x61\x6c")'
+          # Commonly used by obfuscators in JavaScript
+          - pattern: 'window["\145\166\141\154"](...)'
+          - pattern: 'window["\x65\x76\x61\x6c"](...)'
+          # Variable assigned to eval and then called
+          - pattern: |
+              var _____ = eval;
+              ...
+              _____(...)
+          # This naming is used by some obfuscators such as UglifyJS
+          - pattern: 'function _____(){...}; _____=eval; _____(...)'
+          - pattern: 'setTimeout("...", ...)'
+          - pattern: 'setInterval("...", ...)'
+    languages:
+      - javascript
+    severity: WARNING
+
